@@ -21,6 +21,7 @@ target_link_libraries(audio_test
     pulse-simple
     # pulsecore-12.2
     pulse
+    opus
     # pulsecommon-12.2
     )
 
