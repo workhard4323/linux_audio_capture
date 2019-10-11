@@ -65,9 +65,14 @@ void AudioCapture::CaptureLoop() {
     std::cout << "loop capture start" << std::endl;
     while (running_) {
         if (pa_simple_read(s, buffer.data(), kBufSize, &error) < 0) { break; }
-        std::cout << "size:" << kBufSize << std::endl;
+        callback_(buffer.data(), kBufSize);
+        // std::cout << "size:" << kBufSize << std::endl;
     }
 
     running_ = false;
     if (s) pa_simple_free(s);
+}
+
+void AudioCapture::SetCallback(Callback callback) {
+    callback_ = std::move(callback);
 }

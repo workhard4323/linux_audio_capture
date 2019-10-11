@@ -3,7 +3,7 @@
 #include <opus/opus.h>
 #include <iostream>
 
-OpusEncoder::OpusEncoder() {
+OpusEncoder::OpusEncoder() : audio_capture_(new AudioCapture()) {
     int error;
     opus_enc_ = opus_encoder_create(48000, 2, OPUS_APPLICATION_AUDIO, &error);
     if (error == 0) {
@@ -18,10 +18,28 @@ OpusEncoder::~OpusEncoder() {
     if (opus_enc_) { opus_encoder_destroy(opus_enc_); }
 }
 
-void OpusEncoder::EncodeData(uint8_t* data, uint32_t len) {
-    if (!opus_enc_ || !data) { return; }
-    opus_int32 opus_len;
-    opus_len = opus_encode_float(opus_enc_, (const float*)data, len / 8,
-                                 opus_data_, sizeof(opus_data_));
-    std::cout << "opus_len:" << opus_len << std::endl;
+void OpusEncoder::EncodeData(uint8_t* data, uint32_t len) {}
+
+void OpusEncoder::Start() {
+    if (running_ || !opus_enc_) { return; }
+    audio_capture_->SetCallback([this](uint8_t* data, uint32_t len) {
+        if (!opus_enc_ || !data) { return; }
+        opus_int32 opus_len;
+        opus_len = opus_encode_float(opus_enc_, (const float*)data, len / 8,
+                                     opus_data_, sizeof(opus_data_));
+        callback_(opus_data_, opus_len);
+        // std::cout << "opus_len:" << opus_len << std::endl;
+    });
+    audio_capture_->Start();
+    running_ = true;
+}
+
+void OpusEncoder::Stop() {
+    if (!running_) { return; }
+    audio_capture_->Stop();
+    running_ = false;
+}
+
+void OpusEncoder::SetCallback(Callback callback) {
+    callback_ = std::move(callback);
 }

@@ -1,11 +1,13 @@
 #include <iostream>
 
-#include "audio_capture.h"
+#include "opus_encoder.h"
 
 int main(void) {
-    AudioCapture audio_capture;
-    std::cout << "start" << std::endl;
-    audio_capture.Start();
+    OpusEncoder opus_encoder;
+    opus_encoder.SetCallback([&](uint8_t* data, uint32_t len) {
+        std::cout << "len:" << len << std::endl;
+    });
+    opus_encoder.Start();
     getchar();
     return 0;
 }
